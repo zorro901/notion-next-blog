@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { siteConfig } from "../site.config";
 
 const Navbar = () => {
   return (
@@ -10,7 +11,9 @@ const Navbar = () => {
           aria-label="breadcrumb"
         >
           <Link href="/">
-            <a className="text-gray-500 hover:text-gray-600">sample site</a>
+            <a className="text-gray-500 hover:text-gray-600">
+              {siteConfig.title}
+            </a>
           </Link>
           {/* Breadcrumb */}
         </div>

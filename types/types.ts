@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+import { ParsedUrlQuery } from "querystring";
 
 export type LayoutProps = {
   children: ReactNode;
@@ -15,3 +16,7 @@ export type CardProps = {
     content: string;
   };
 };
+
+export type Params = ParsedUrlQuery & {
+  slug: string
+}

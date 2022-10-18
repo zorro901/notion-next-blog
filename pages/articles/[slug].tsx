@@ -1,22 +1,39 @@
-import { GetServerSideProps, NextPage } from "next";
+import { GetStaticPaths, GetStaticProps, NextPage } from "next";
 import ArticleMeta from "../../components/ArticleMeta";
 import Layout from "../../components/Layout";
 import { ArticleProps, Params } from "../../types/types";
-import { sampleCards } from "../../utils/sample";
+import { fetchBlocksByPageId, fetchPages } from "../../utils/notion";
+import { getText } from '../../utils/property';
+import NotionBlocks from 'notion-block-renderer';
 
-export const getServerSideProps: GetServerSideProps = async (ctx) => {
-  const { slug } = ctx.params as Params;
-
-  const page = sampleCards.find((data) => data.slug === slug);
+export const getStaticProps: GetStaticProps = async (context) => {
+  const { slug } = context.params as Params;
+  const { results } = await fetchPages({ slug })
+  const page = results[0]
+  const pageId = page.id
+  const { results: blocks } = await fetchBlocksByPageId(pageId)
 
   return {
     props: {
-      page: page,
+      page,
+      blocks,
     },
+    revalidate: 10,
   };
-};
+}
 
-const Article:NextPage<ArticleProps> = ({ page }) => {
+export const getStaticPaths: GetStaticPaths = async () => {
+  const { results } = await fetchPages({})
+  const paths = results.map((page: any) => {
+    return { params: { slug: getText(page.properties.slug.rich_text) } }
+  })
+  return {
+    paths,
+    fallback: 'blocking',
+  }
+}
+
+const Article: NextPage<ArticleProps> = ({ page,blocks }) => {
   return (
     <Layout>
       <article className="w-full">
@@ -26,7 +43,10 @@ const Article:NextPage<ArticleProps> = ({ page }) => {
         </div>
 
         {/* article */}
-        <div className="my-12">article {page.content}</div>
+
+        <div className="my-12">
+          <NotionBlocks blocks={blocks} />
+        </div>
       </article>
     </Layout>
   );

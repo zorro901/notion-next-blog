@@ -3,19 +3,19 @@ import { Client } from "@notionhq/client"
 const notion = new Client({ auth: process.env.NOTION_KEY })
 const database_id: string = process.env.NOTION_DATABASE_ID!
 
-export const fetchPages = async ({ slug }: { slug?: string }) => {
+export const fetchPages = async ({ slug, tag }: { slug?: string, tag?: string }) => {
   const and: any = [
     {
       property: "isPublic",
       checkbox: {
         equals: true,
-      }
+      },
     },
     {
       property: "slug",
       rich_text: {
         is_not_empty: true,
-      }
+      },
     },
   ]
 
@@ -24,21 +24,30 @@ export const fetchPages = async ({ slug }: { slug?: string }) => {
       property: "slug",
       rich_text: {
         equals: slug,
-      }
+      },
+    })
+  }
+
+  if (tag) {
+    and.push({
+      property: "tags",
+      multi_select: {
+        contains: tag,
+      },
     })
   }
 
   return await notion.databases.query({
     database_id,
     filter: {
-      and: and
+      and: and,
     },
     sorts: [
       {
         property: "published",
-        direction: "descending"
-      }
-    ]
+        direction: "descending",
+      },
+    ],
   })
 }
 
